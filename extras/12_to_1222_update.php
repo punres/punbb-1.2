@@ -66,7 +66,9 @@ $result1 = $db->query('SELECT cur_version FROM '.$db->prefix.'options');
 $result2 = $db->query('SELECT conf_value FROM '.$db->prefix.'config WHERE conf_name=\'o_cur_version\'');
 $cur_version = ($result1) ? $db->result($result1) : (($result2 && $db->num_rows($result2)) ? $db->result($result2) : 'beta');
 
-if (!in_array($cur_version, $update_from))
+if ($cur_version == $update_to)
+	error('The database \''.$db_name.'\' has already been updated to version '.$update_to.'.', __FILE__, __LINE__);
+else if (!in_array($cur_version, $update_from))
 	error('Version mismatch. This script updates version '.implode(', ', $update_from).' to version '.$update_to.'. The database \''.$db_name.'\' doesn\'t seem to be running a supported version.', __FILE__, __LINE__);
 
 
@@ -117,6 +119,331 @@ if (!isset($_POST['form_sent']))
 }
 else
 {
+	//
+	// Database update functions
+	//
+	function table_exists($table_name, $no_prefix = false)
+	{
+		global $db, $db_type;
+
+		switch ($db_type)
+		{
+			case 'pgsql':
+				$result = $db->query('SELECT 1 FROM pg_class WHERE relname = \''.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'\'');
+				return $db->num_rows($result) > 0;
+
+			case 'sqlite':
+				$result = $db->query('SELECT 1 FROM sqlite_master WHERE name = \''.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'\' AND type=\'table\'');
+				return $db->num_rows($result) > 0;
+
+			default:
+				$result = $db->query('SHOW TABLES LIKE \''.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'\'');
+				return $db->num_rows($result) > 0;
+		}
+	}
+
+
+	function field_exists($table_name, $field_name, $no_prefix = false)
+	{
+		global $db, $db_type;
+
+		switch ($db_type)
+		{
+			case 'pgsql':
+				$result = $db->query('SELECT 1 FROM pg_class c INNER JOIN pg_attribute a ON a.attrelid = c.oid WHERE c.relname = \''.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'\' AND a.attname = \''.$db->escape($field_name).'\'');
+				return $db->num_rows($result) > 0;
+
+			case 'sqlite':
+				$result = $db->query('SELECT sql FROM sqlite_master WHERE name = \''.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'\' AND type=\'table\'');
+				if (!$db->num_rows($result))
+					return false;
+
+				return preg_match('%[\r\n]'.preg_quote($field_name, '%').' %', $db->result($result));
+
+			default:
+				$result = $db->query('SHOW COLUMNS FROM '.($no_prefix ? '' : $db->prefix).$table_name.' LIKE \''.$db->escape($field_name).'\'');
+				return $db->num_rows($result) > 0;
+		}
+	}
+
+
+	function drop_table($table_name, $no_prefix = false)
+	{
+		global $db;
+
+		if (!table_exists($table_name, $no_prefix))
+			return true;
+
+		return $db->query('DROP TABLE '.($no_prefix ? '' : $db->prefix).$db->escape($table_name)) ? true : false;
+	}
+
+
+	function get_table_info($table_name, $no_prefix = false)
+	{
+		global $db, $db_type;
+	
+		if ($db_type != 'sqlite')
+			return;
+
+		// Grab table info
+		$result = $db->query('SELECT sql FROM sqlite_master WHERE tbl_name = \''.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'\' ORDER BY type DESC') or error('Unable to fetch table information', __FILE__, __LINE__, $db->error());
+		$num_rows = $db->num_rows($result);
+
+		if ($num_rows == 0)
+			return;
+
+		$table = array();
+		$table['indices'] = array();
+		while ($cur_index = $db->fetch_assoc($result))
+		{
+			if (empty($cur_index['sql']))
+				continue;
+
+			if (!isset($table['sql']))
+				$table['sql'] = $cur_index['sql'];
+			else
+				$table['indices'][] = $cur_index['sql'];
+		}
+
+		// Work out the columns in the table currently
+		$table_lines = explode("\n", $table['sql']);
+		$table['columns'] = array();
+		foreach ($table_lines as $table_line)
+		{
+			$table_line = trim($table_line, " \t\n\r,"); // trim spaces, tabs, newlines, and commas
+			if (substr($table_line, 0, 12) == 'CREATE TABLE')
+				continue;
+			else if (substr($table_line, 0, 11) == 'PRIMARY KEY')
+				$table['primary_key'] = $table_line;
+			else if (substr($table_line, 0, 6) == 'UNIQUE')
+				$table['unique'] = $table_line;
+			else if (substr($table_line, 0, strpos($table_line, ' ')) != '')
+				$table['columns'][substr($table_line, 0, strpos($table_line, ' '))] = trim(substr($table_line, strpos($table_line, ' ')));
+		}
+
+		return $table;
+	}
+
+
+	function add_field($table_name, $field_name, $field_type, $allow_null, $default_value = null, $after_field = null, $no_prefix = false)
+	{
+		global $db, $db_type;
+
+		switch ($db_type)
+		{
+			case 'pgsql':
+				if (field_exists($table_name, $field_name, $no_prefix))
+					return true;
+
+				$datatype_transformations = array(
+					'%^(TINY|SMALL)INT( )?(\\([0-9]+\\))?( )?(UNSIGNED)?$%i'			=>	'SMALLINT',
+					'%^(MEDIUM)?INT( )?(\\([0-9]+\\))?( )?(UNSIGNED)?$%i'				=>	'INTEGER',
+					'%^BIGINT( )?(\\([0-9]+\\))?( )?(UNSIGNED)?$%i'						=>	'BIGINT',
+					'%^(TINY|MEDIUM|LONG)?TEXT$%i'										=>	'TEXT',
+					'%^DOUBLE( )?(\\([0-9,]+\\))?( )?(UNSIGNED)?$%i'					=>	'DOUBLE PRECISION',
+					'%^FLOAT( )?(\\([0-9]+\\))?( )?(UNSIGNED)?$%i'						=>	'REAL'
+				);
+
+				$field_type = preg_replace(array_keys($datatype_transformations), array_values($datatype_transformations), $field_type);
+
+				$result = $db->query('ALTER TABLE '.($no_prefix ? '' : $db->prefix).$table_name.' ADD '.$field_name.' '.$field_type) ? true : false;
+
+				if (!is_null($default_value))
+				{
+					if (!is_int($default_value) && !is_float($default_value))
+						$default_value = '\''.$db->escape($default_value).'\'';
+
+					$result &= $db->query('ALTER TABLE '.($no_prefix ? '' : $db->prefix).$table_name.' ALTER '.$field_name.' SET DEFAULT '.$default_value) ? true : false;
+					$result &= $db->query('UPDATE '.($no_prefix ? '' : $db->prefix).$table_name.' SET '.$field_name.'='.$default_value) ? true : false;
+				}
+
+				if (!$allow_null)
+					$result &= $db->query('ALTER TABLE '.($no_prefix ? '' : $db->prefix).$table_name.' ALTER '.$field_name.' SET NOT NULL') ? true : false;
+
+				return $result;
+
+			case 'sqlite':
+				if (field_exists($table_name, $field_name, $no_prefix))
+					return true;
+
+				$table = get_table_info($table_name, $no_prefix);
+
+				// Create temp table
+				$now = time();
+				$tmptable = str_replace('CREATE TABLE '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).' (', 'CREATE TABLE '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'_t'.$now.' (', $table['sql']);
+				$result = $db->query($tmptable) ? true : false;
+				$result &= $db->query('INSERT INTO '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'_t'.$now.' SELECT * FROM '.($no_prefix ? '' : $db->prefix).$db->escape($table_name)) ? true : false;
+
+				$datatype_transformations = array(
+					'%^SERIAL$%'															=>	'INTEGER',
+					'%^(TINY|SMALL|MEDIUM|BIG)?INT( )?(\\([0-9]+\\))?( )?(UNSIGNED)?$%i'	=>	'INTEGER',
+					'%^(TINY|MEDIUM|LONG)?TEXT$%i'											=>	'TEXT'
+				);
+
+				// Create new table sql
+				$field_type = preg_replace(array_keys($datatype_transformations), array_values($datatype_transformations), $field_type);
+				$query = $field_type;
+
+				if (!$allow_null)
+					$query .= ' NOT NULL';
+
+				if ($default_value === '')
+					$default_value = '\'\'';
+
+				if (!is_null($default_value))
+					$query .= ' DEFAULT '.$default_value;
+
+				$old_columns = array_keys($table['columns']);
+
+				// Determine the proper offset
+				if (!is_null($after_field))
+					$offset = array_search($after_field, array_keys($table['columns']), true) + 1;
+				else
+					$offset = count($table['columns']);
+
+				// Out of bounds checks
+				if ($offset > count($table['columns']))
+					$offset = count($table['columns']);
+				else if ($offset < 0)
+					$offset = 0;
+
+				if (!is_null($field_name) && $field_name !== '')
+					$table['columns'] = array_merge(array_slice($table['columns'], 0, $offset), array($field_name => $query), array_slice($table['columns'], $offset));
+
+				$new_table = 'CREATE TABLE '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).' (';
+
+				foreach ($table['columns'] as $cur_column => $column_details)
+					$new_table .= "\n".$cur_column.' '.$column_details.',';
+
+				if (isset($table['unique']))
+					$new_table .= "\n".$table['unique'].',';
+
+				if (isset($table['primary_key']))
+					$new_table .= "\n".$table['primary_key'].',';
+
+				$new_table = trim($new_table, ',')."\n".');';
+
+				// Drop old table
+				$result &= drop_table($table_name, $no_prefix);
+
+				// Create new table
+				$result &= $db->query($new_table) ? true : false;
+
+				// Recreate indexes
+				if (!empty($table['indices']))
+				{
+					foreach ($table['indices'] as $cur_index)
+						$result &= $db->query($cur_index) ? true : false;
+				}
+
+				// Copy content back
+				$result &= $db->query('INSERT INTO '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).' ('.implode(', ', $old_columns).') SELECT * FROM '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'_t'.$now) ? true : false;
+
+				// Drop temp table
+				$result &= drop_table($table_name.'_t'.$now, $no_prefix);
+
+				return $result;
+
+			default:
+				if (field_exists($table_name, $field_name, $no_prefix))
+					return true;
+
+				$datatype_transformations = array(
+					'%^SERIAL$%'	=>	'INT(10) UNSIGNED AUTO_INCREMENT'
+				);
+
+				$field_type = preg_replace(array_keys($datatype_transformations), array_values($datatype_transformations), $field_type);
+
+				if (!is_null($default_value) && !is_int($default_value) && !is_float($default_value))
+					$default_value = '\''.$db->escape($default_value).'\'';
+
+				return $db->query('ALTER TABLE '.($no_prefix ? '' : $db->prefix).$table_name.' ADD '.$field_name.' '.$field_type.($allow_null ? ' ' : ' NOT NULL').(!is_null($default_value) ? ' DEFAULT '.$default_value : ' ').(!is_null($after_field) ? ' AFTER '.$after_field : '')) ? true : false;
+		}
+	}
+
+
+	function drop_field($table_name, $field_name, $no_prefix = false)
+	{
+		global $db, $db_type;
+
+		switch ($db_type)
+		{
+			case 'sqlite':
+				if (!field_exists($table_name, $field_name, $no_prefix))
+					return true;
+
+				$table = get_table_info($table_name, $no_prefix);
+
+				// Create temp table
+				$now = time();
+				$tmptable = str_replace('CREATE TABLE '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).' (', 'CREATE TABLE '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'_t'.$now.' (', $table['sql']);
+				$result = $db->query($tmptable) ? true : false;
+				$result &= $db->query('INSERT INTO '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'_t'.$now.' SELECT * FROM '.($no_prefix ? '' : $db->prefix).$db->escape($table_name)) ? true : false;
+
+				// Work out the columns we need to keep and the sql for the new table
+				unset($table['columns'][$field_name]);
+				$new_columns = array_keys($table['columns']);
+
+				$new_table = 'CREATE TABLE '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).' (';
+
+				foreach ($table['columns'] as $cur_column => $column_details)
+					$new_table .= "\n".$cur_column.' '.$column_details.',';
+
+				if (isset($table['unique']))
+					$new_table .= "\n".$table['unique'].',';
+
+				if (isset($table['primary_key']))
+					$new_table .= "\n".$table['primary_key'].',';
+
+				$new_table = trim($new_table, ',')."\n".');';
+
+				// Drop old table
+				$result &= drop_table($table_name, $no_prefix);
+
+				// Create new table
+				$result &= $db->query($new_table) ? true : false;
+
+				// Recreate indexes
+				if (!empty($table['indices']))
+				{
+					foreach ($table['indices'] as $cur_index)
+						if (!preg_match('%\('.preg_quote($field_name, '%').'\)%', $cur_index))
+							$result &= $db->query($cur_index) ? true : false;
+				}
+
+				// Copy content back
+				$result &= $db->query('INSERT INTO '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).' SELECT '.implode(', ', $new_columns).' FROM '.($no_prefix ? '' : $db->prefix).$db->escape($table_name).'_t'.$now) ? true : false;
+
+				// Drop temp table
+				$result &= drop_table($table_name.'_t'.$now, $no_prefix);
+
+				return $result;
+
+			default:
+				if (!field_exists($table_name, $field_name, $no_prefix))
+					return true;
+	
+				return $db->query('ALTER TABLE '.($no_prefix ? '' : $db->prefix).$table_name.' DROP '.$field_name) ? true : false;
+		}
+	}
+
+
+	function truncate_table($table_name, $no_prefix = false)
+	{
+		global $db, $db_type;
+
+		switch ($db_type)
+		{
+			case 'pgsql':
+			case 'sqlite':
+				return $db->query('DELETE FROM '.($no_prefix ? '' : $db->prefix).$table_name) ? true : false;
+
+			default:
+				return $db->query('TRUNCATE TABLE '.($no_prefix ? '' : $db->prefix).$table_name) ? true : false;
+		}
+	}
+
+
 	// If we're upgrading from 1.2
 	if ($cur_version == '1.2')
 	{
