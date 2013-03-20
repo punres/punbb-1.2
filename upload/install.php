@@ -394,7 +394,7 @@ else
 					message VARCHAR(255),
 					expire INT(10) UNSIGNED,
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -439,7 +439,7 @@ else
 					cat_name VARCHAR(80) NOT NULL DEFAULT 'New Category',
 					disp_position INT(10) NOT NULL DEFAULT 0,
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -474,7 +474,7 @@ else
 					search_for VARCHAR(60) NOT NULL DEFAULT '',
 					replace_with VARCHAR(60) NOT NULL DEFAULT '',
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -508,7 +508,7 @@ else
 					conf_name VARCHAR(255) NOT NULL DEFAULT '',
 					conf_value TEXT,
 					PRIMARY KEY (conf_name)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -543,7 +543,7 @@ else
 					post_replies TINYINT(1) NOT NULL DEFAULT 1,
 					post_topics TINYINT(1) NOT NULL DEFAULT 1,
 					PRIMARY KEY (group_id, forum_id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -592,7 +592,7 @@ else
 					disp_position INT(10) NOT NULL DEFAULT 0,
 					cat_id INT(10) UNSIGNED NOT NULL DEFAULT 0,
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -660,7 +660,7 @@ else
 					g_post_flood SMALLINT(6) NOT NULL DEFAULT 30,
 					g_search_flood SMALLINT(6) NOT NULL DEFAULT 30,
 					PRIMARY KEY (g_id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -721,7 +721,7 @@ else
 					ident VARCHAR(200) NOT NULL DEFAULT '',
 					logged INT(10) UNSIGNED NOT NULL DEFAULT 0,
 					idle TINYINT(1) NOT NULL DEFAULT 0
-					) TYPE=HEAP;";
+					) ENGINE=HEAP;";
 			break;
 
 		case 'pgsql':
@@ -764,7 +764,7 @@ else
 					edited_by VARCHAR(200),
 					topic_id INT(10) UNSIGNED NOT NULL DEFAULT 0,
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -815,7 +815,7 @@ else
 					rank VARCHAR(50) NOT NULL DEFAULT '',
 					min_posts MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT 0,
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -856,7 +856,7 @@ else
 					zapped INT(10) UNSIGNED,
 					zapped_by INT(10) UNSIGNED,
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -903,7 +903,7 @@ else
 					ident VARCHAR(200) NOT NULL DEFAULT '',
 					search_data TEXT,
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -937,7 +937,7 @@ else
 					post_id INT(10) UNSIGNED NOT NULL DEFAULT 0,
 					word_id MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT 0,
 					subject_match TINYINT(1) NOT NULL DEFAULT 0
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -970,7 +970,7 @@ else
 					word VARCHAR(20) BINARY NOT NULL DEFAULT '',
 					PRIMARY KEY (word),
 					KEY ".$db_prefix."search_words_id_idx (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -1003,7 +1003,7 @@ else
 					user_id INT(10) UNSIGNED NOT NULL DEFAULT 0,
 					topic_id INT(10) UNSIGNED NOT NULL DEFAULT 0,
 					PRIMARY KEY (user_id, topic_id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -1046,7 +1046,7 @@ else
 					moved_to INT(10) UNSIGNED,
 					forum_id INT(10) UNSIGNED NOT NULL DEFAULT 0,
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
@@ -1135,7 +1135,7 @@ else
 					activate_string VARCHAR(50),
 					activate_key VARCHAR(8),
 					PRIMARY KEY (id)
-					) TYPE=MyISAM;";
+					) ENGINE=MyISAM;";
 			break;
 
 		case 'pgsql':
