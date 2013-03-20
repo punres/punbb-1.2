@@ -580,7 +580,7 @@ generate_admin_menu('options');
 									<th scope="row">Subscriptions</th>
 									<td>
 										<input type="radio" name="form[subscriptions]" value="1"<?php if ($pun_config['o_subscriptions'] == '1') echo ' checked="checked"' ?> />&nbsp;<strong>Yes</strong>&nbsp;&nbsp;&nbsp;<input type="radio" name="form[subscriptions]" value="0"<?php if ($pun_config['o_subscriptions'] == '0') echo ' checked="checked"' ?> />&nbsp;<strong>No</strong>
-										<span>Enable users to subscribe to topics (recieve e-mail when someone replies).</span>
+										<span>Enable users to subscribe to topics (receive e-mail when someone replies).</span>
 									</td>
 								</tr>
 								<tr>
