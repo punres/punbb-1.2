@@ -295,14 +295,14 @@ function generate_navlinks()
 				$links[] = '<li id="navsearch"><a href="search.php">'.$lang_common['Search'].'</a>';
 
 			$links[] = '<li id="navprofile"><a href="profile.php?id='.$pun_user['id'].'">'.$lang_common['Profile'].'</a>';
-			$links[] = '<li id="navlogout"><a href="login.php?action=out&amp;id='.$pun_user['id'].'&amp;csrf_token='.sha1($pun_user['id'].sha1(get_remote_address())).'">'.$lang_common['Logout'].'</a>';
+			$links[] = '<li id="navlogout"><a href="login.php?action=out&amp;id='.$pun_user['id'].'&amp;csrf_token='.pun_hash($pun_user['id'].pun_hash(get_remote_address())).'">'.$lang_common['Logout'].'</a>';
 		}
 		else
 		{
 			$links[] = '<li id="navsearch"><a href="search.php">'.$lang_common['Search'].'</a>';
 			$links[] = '<li id="navprofile"><a href="profile.php?id='.$pun_user['id'].'">'.$lang_common['Profile'].'</a>';
 			$links[] = '<li id="navadmin"><a href="admin_index.php">'.$lang_common['Admin'].'</a>';
-			$links[] = '<li id="navlogout"><a href="login.php?action=out&amp;id='.$pun_user['id'].'&amp;csrf_token='.sha1($pun_user['id'].sha1(get_remote_address())).'">'.$lang_common['Logout'].'</a>';
+			$links[] = '<li id="navlogout"><a href="login.php?action=out&amp;id='.$pun_user['id'].'&amp;csrf_token='.pun_hash($pun_user['id'].pun_hash(get_remote_address())).'">'.$lang_common['Logout'].'</a>';
 		}
 	}
 
