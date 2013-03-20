@@ -46,7 +46,8 @@ define('PUN_DEBUG', 1);
 error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
 // Turn off magic_quotes_runtime
-set_magic_quotes_runtime(0);
+if (get_magic_quotes_runtime())	
+	set_magic_quotes_runtime(0);
 
 // Turn off PHP time limit
 @set_time_limit(0);
