@@ -156,7 +156,7 @@ if (!empty($errors))
 <div id="posterror" class="block">
 	<h2><span><?php echo $lang_post['Post errors'] ?></span></h2>
 	<div class="box">
-		<div class="inbox"
+		<div class="inbox">
 			<p><?php echo $lang_post['Post errors info'] ?></p>
 			<ul>
 <?php
