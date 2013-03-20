@@ -161,7 +161,7 @@ function set_default_user()
 
 	$pun_user['disp_topics'] = $pun_config['o_disp_topics_default'];
 	$pun_user['disp_posts'] = $pun_config['o_disp_posts_default'];
-	$pun_user['timezone'] = $pun_config['o_server_timezone'];
+	$pun_user['timezone'] = $pun_config['o_default_timezone'];
 	$pun_user['language'] = $pun_config['o_default_lang'];
 	$pun_user['style'] = $pun_config['o_default_style'];
 	$pun_user['is_guest'] = true;
@@ -637,13 +637,13 @@ function format_time($timestamp, $date_only = false)
 	if ($timestamp == '')
 		return $lang_common['Never'];
 
-	$diff = ($pun_user['timezone'] - $pun_config['o_server_timezone']) * 3600;
+	$diff = $pun_user['timezone'] * 3600;
 	$timestamp += $diff;
 	$now = time();
 
-	$date = date($pun_config['o_date_format'], $timestamp);
-	$today = date($pun_config['o_date_format'], $now+$diff);
-	$yesterday = date($pun_config['o_date_format'], $now+$diff-86400);
+	$date = gmdate($pun_config['o_date_format'], $timestamp);
+	$today = gmdate($pun_config['o_date_format'], $now+$diff);
+	$yesterday = gmdate($pun_config['o_date_format'], $now+$diff-86400);
 
 	if ($date == $today)
 		$date = $lang_common['Today'];
@@ -651,7 +651,7 @@ function format_time($timestamp, $date_only = false)
 		$date = $lang_common['Yesterday'];
 
 	if (!$date_only)
-		return $date.' '.date($pun_config['o_time_format'], $timestamp);
+		return $date.' '.gmdate($pun_config['o_time_format'], $timestamp);
 	else
 		return $date;
 }
@@ -1105,6 +1105,28 @@ function mark_topic_read($topic_id, $forum_id, $last_post)
 	{
 		$pun_user['read_topics']['t'][$topic_id] = time();
 		$db->query('UPDATE '.$db->prefix.'users SET read_topics=\''.$db->escape(serialize($pun_user['read_topics'])).'\' WHERE id='.$pun_user['id']) or error('Unable to update read-topic data', __FILE__, __LINE__, $db->error());
+	}
+}
+
+
+//
+// Check if the server timezone setting in the board config is still set correctly (if it isn't, update it)
+//
+function check_server_timezone()
+{
+	global $db, $pun_config;
+
+	// Determine the server timezone offset in hours
+	$server_timezone = date('Z') / 3600;
+
+	// If the server timezone has changed
+	if ($pun_config['o_server_timezone'] != $server_timezone)
+	{
+		$db->query('UPDATE '.$db->prefix.'config SET conf_value=\''.$db->escape($server_timezone).'\' WHERE conf_name=\'o_server_timezone\'') or error('Unable to update server timezone in board config', __FILE__, __LINE__, $db->error());
+
+		// Regenerate the config cache
+		require_once PUN_ROOT.'include/cache.php';
+		generate_config_cache();
 	}
 }
 

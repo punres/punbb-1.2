@@ -454,6 +454,11 @@ else
 	// Add the read_topics column to the users table
 	add_field('users', 'read_topics', 'MEDIUMTEXT', true, null, 'last_visit') or error('Unable to add last_visit field', __FILE__, __LINE__, $db->error());
 
+	// Insert new config option o_default_timezone if it doesn't exist
+	$result = $db->query('SELECT 1 FROM '.$db->prefix.'config WHERE conf_name = \'o_default_timezone\'');
+	if (!$db->num_rows($result))
+		$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES(\'o_default_timezone\', \'0\')') or error('Unable to alter DB structure.', __FILE__, __LINE__, $db->error());
+
 	// Increase visit timeout to 60 minutes (if it is less than 60 minutes)
 	$result = $db->query('SELECT conf_value FROM '.$db->prefix.'config WHERE conf_name = \'o_timeout_visit\'');
 	if ($db->num_rows($result))

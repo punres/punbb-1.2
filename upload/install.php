@@ -1292,12 +1292,16 @@ else
 	$db->query('INSERT INTO '.$db_prefix."users (group_id, username, password, email, num_posts, last_post, registered, registration_ip, last_visit) VALUES(1, '".$db->escape($username)."', '".pun_hash($password1)."', '$email', 1, ".$now.", ".$now.", '127.0.0.1', ".$now.')')
 		or error('Unable to add administrator user. Please check your configuration and try again.');
 
+	// Determine the server timezone offset in hours
+	$server_timezone = date('Z') / 3600;
+
 	// Insert config data
 	$config = array(
 		'o_cur_version'				=> "'$punbb_version'",
 		'o_board_title'				=> "'My PunBB forum'",
 		'o_board_desc'				=> "'Unfortunately no one can be told what PunBB is - you have to see it for yourself.'",
-		'o_server_timezone'			=> "'0'",
+		'o_server_timezone'			=> "'$server_timezone'",
+		'o_default_timezone'		=> "'0'",
 		'o_time_format'				=> "'H:i:s'",
 		'o_date_format'				=> "'Y-m-d'",
 		'o_timeout_visit'			=> "'3600'",
