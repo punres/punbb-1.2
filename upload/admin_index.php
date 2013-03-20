@@ -43,20 +43,14 @@ if ($action == 'check_upgrade')
 	if (!ini_get('allow_url_fopen'))
 		message('Unable to check for upgrade since \'allow_url_fopen\' is disabled on this system.');
 
-	$fp = @fopen('http://punbb.informer.com/latest_version', 'r');
-	$latest_version = trim(@fread($fp, 16));
-	@fclose($fp);
-
-	if ($latest_version == '')
+	$latest_version = trim(@file_get_contents('http://punbb.informer.com/latest_version'));
+	if (empty($latest_version))
 		message('Check for upgrade failed for unknown reasons.');
 
-	$latest_version = preg_replace('/(\.0)+(?!\.)|(\.0+$)/', '$2', $latest_version);
-	$cur_version = preg_replace('/(\.0)+(?!\.)|(\.0+$)/', '$2', $cur_version);
-
-	if (version_compare($cur_version, $latest_version, '>='))
+	if (version_compare($pun_config['o_cur_version'], $latest_version, '>='))
 		message('You are running the latest version of PunBB.');
 	else
-		message('A new version of PunBB has been released. You can download the latest version at <a href="http://punbb.informer.com/">PunBB.Informer.Com</a>.');
+		message('A new version of PunBB has been released. You can download the latest version at <a href="http://www.punbb.org/">PunBB.org</a>.');
 }
 
 
