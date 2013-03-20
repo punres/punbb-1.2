@@ -579,7 +579,7 @@ if (isset($_GET['action']) || isset($_GET['search_id']))
 			<div class="postleft">
 				<dl>
 					<dt><?php echo $pposter ?></dt>
-					<dd>Replies: <?php echo $search_set[$i]['num_replies'] ?></dd>
+					<dd><?php echo $lang_common['Replies'].': '.$search_set[$i]['num_replies'] ?></dd>
 					<dd><?php echo $icon; ?></dd>
 					<dd><p class="clearb"><a href="viewtopic.php?pid=<?php echo $search_set[$i]['pid'].'#p'.$search_set[$i]['pid'] ?>"><?php echo $lang_search['Go to post'] ?></a></p></dd>
 				</dl>

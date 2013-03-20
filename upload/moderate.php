@@ -348,7 +348,7 @@ if (isset($_REQUEST['move_topics']) || isset($_POST['move_topics_to']))
 		$action = 'single';
 	}
 
-	$page_title = pun_htmlspecialchars($pun_config['o_board_title']).' / Moderate';
+	$page_title = pun_htmlspecialchars($pun_config['o_board_title']).' / '.$lang_misc['Moderate'];
 	require PUN_ROOT.'header.php';
 
 ?>
