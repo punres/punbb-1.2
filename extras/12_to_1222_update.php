@@ -454,6 +454,16 @@ else
 	// Add the read_topics column to the users table
 	add_field('users', 'read_topics', 'MEDIUMTEXT', true, null, 'last_visit') or error('Unable to add last_visit field', __FILE__, __LINE__, $db->error());
 
+	// Increase visit timeout to 60 minutes (if it is less than 60 minutes)
+	$result = $db->query('SELECT conf_value FROM '.$db->prefix.'config WHERE conf_name = \'o_timeout_visit\'');
+	if ($db->num_rows($result))
+	{
+		$timeout_visit = $db->result($result);
+
+		if (intval($timeout_visit) < 3600)
+			$db->query('UPDATE '.$db->prefix.'config SET conf_value=\'3600\' WHERE conf_name=\'o_timeout_visit\'') or error('Unable to update board config', __FILE__, __LINE__, $db->error());
+	}
+
 	// We need to add a unique index to avoid users having multiple rows in the online table
 	if ($db_type == 'mysql' || $db_type == 'mysqli')
 	{

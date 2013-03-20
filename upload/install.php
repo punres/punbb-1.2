@@ -1300,7 +1300,7 @@ else
 		'o_server_timezone'			=> "'0'",
 		'o_time_format'				=> "'H:i:s'",
 		'o_date_format'				=> "'Y-m-d'",
-		'o_timeout_visit'			=> "'600'",
+		'o_timeout_visit'			=> "'3600'",
 		'o_timeout_online'			=> "'300'",
 		'o_redirect_delay'			=> "'1'",
 		'o_show_version'			=> "'0'",
