@@ -612,7 +612,7 @@ if (isset($_GET['action']) || isset($_GET['search_id']))
 					$item_status = 'iclosed';
 				}
 
-				if (!$pun_user['is_guest'] && $search_set[$i]['last_post'] > $pun_user['last_visit'])
+				if (!$pun_user['is_guest'] && topic_is_new($search_set[$i]['tid'], $search_set[$i]['forum_id'],  $search_set[$i]['last_post']))
 				{
 					$icon_text .= ' '.$lang_common['New icon'];
 					$item_status .= ' inew';

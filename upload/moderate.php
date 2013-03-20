@@ -639,7 +639,7 @@ if ($db->num_rows($result))
 			$item_status = 'iclosed';
 		}
 
-		if ($cur_topic['last_post'] > $pun_user['last_visit'] && !$ghost_topic)
+		if (topic_is_new($cur_topic['id'], $fid,  $cur_topic['last_post']) && !$ghost_topic)
 		{
 			$icon_text .= ' '.$lang_common['New icon'];
 			$item_status .= ' inew';

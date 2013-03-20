@@ -125,6 +125,7 @@ $lang_common = array(
 'Last visit'			=>	'Last visit',
 'Show new posts'		=>	'Show new posts since last visit',
 'Mark all as read'		=>	'Mark all topics as read',
+'Mark forum as read'	=>	'Mark this forum as read',
 'Link separator'		=>	'',	// The text that separates links in the navigator
 
 // Stuff for the page footer

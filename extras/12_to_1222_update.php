@@ -451,6 +451,9 @@ else
 		$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES(\'o_additional_navlinks\', NULL)') or error('Unable to alter DB structure.', __FILE__, __LINE__, $db->error());
 	}
 
+	// Add the read_topics column to the users table
+	add_field('users', 'read_topics', 'MEDIUMTEXT', true, null, 'last_visit') or error('Unable to add last_visit field', __FILE__, __LINE__, $db->error());
+
 	// We need to add a unique index to avoid users having multiple rows in the online table
 	if ($db_type == 'mysql' || $db_type == 'mysqli')
 	{

@@ -163,7 +163,7 @@ if ($db->num_rows($result))
 			$item_status = 'iclosed';
 		}
 
-		if (!$pun_user['is_guest'] && $cur_topic['last_post'] > $pun_user['last_visit'] && $cur_topic['moved_to'] == null)
+		if (!$pun_user['is_guest'] && topic_is_new($cur_topic['id'], $id,  $cur_topic['last_post']) && $cur_topic['moved_to'] == null)
 		{
 			$icon_text .= ' '.$lang_common['New icon'];
 			$item_status .= ' inew';

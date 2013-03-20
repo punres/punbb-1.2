@@ -4,6 +4,7 @@
 $lang_misc = array(
 
 'Mark read redirect'		=>	'All topics and forums have been marked as read. Redirecting &hellip;',
+'Mark forum read redirect'	=>	'All topics in this forum have been marked as read. Redirecting &hellip;',
 
 // Send e-mail
 'Form e-mail disabled'		=>	'The user you are trying to send an e-mail to has disabled form e-mail.',

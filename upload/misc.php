@@ -64,11 +64,25 @@ else if ($action == 'markread')
 	if ($pun_user['is_guest'])
 		message($lang_common['No permission']);
 
-	$db->query('UPDATE '.$db->prefix.'users SET last_visit='.$pun_user['logged'].' WHERE id='.$pun_user['id']) or error('Unable to update user last visit data', __FILE__, __LINE__, $db->error());
+	$db->query('UPDATE '.$db->prefix.'users SET last_visit='.$pun_user['logged'].', read_topics=NULL WHERE id='.$pun_user['id']) or error('Unable to update user last visit data', __FILE__, __LINE__, $db->error());
 
 	redirect('index.php', $lang_misc['Mark read redirect']);
 }
 
+else if ($action == 'markforumread')
+{
+	$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+	if ($pun_user['is_guest'])
+		message($lang_common['No permission']);
+	if ($id < 1)
+		message($lang_common['Bad request']);
+
+	$pun_user['read_topics']['f'][$id] = time();
+
+	$db->query('UPDATE '.$db->prefix.'users SET read_topics=\''.$db->escape(serialize($pun_user['read_topics'])).'\' WHERE id='.$pun_user['id']) or error('Unable to update read-topic data', __FILE__, __LINE__, $db->error());
+
+	redirect('index.php', $lang_misc['Mark forum read redirect']);
+}
 
 else if (isset($_GET['email']))
 {
