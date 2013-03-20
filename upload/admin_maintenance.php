@@ -66,6 +66,7 @@ if (isset($_GET['i_per_page']) && isset($_GET['i_start_at']))
 
 			case 'pgsql';
 				$result = $db->query('SELECT setval(\''.$db->prefix.'search_words_id_seq\', 1, false)') or error('Unable to update sequence', __FILE__, __LINE__, $db->error());
+				break;
 		}
 	}
 
