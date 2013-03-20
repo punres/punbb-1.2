@@ -173,7 +173,6 @@ generate_admin_menu('index');
 					<dt>PunBB version</dt>
 					<dd>
 						PunBB <?php echo $pun_config['o_cur_version'] ?> - <a href="admin_index.php?action=check_upgrade">Check for upgrade</a><br />
-						&copy; Copyright 2002-2008 PunBB
 					</dd>
 					<dt>Server load</dt>
 					<dd>
