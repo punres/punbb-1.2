@@ -93,7 +93,12 @@ Rebuilding index &hellip; This might be a good time to put on some coffee :-)<br
 	require PUN_ROOT.'include/search_idx.php';
 
 	// Fetch posts to process
-	$result = $db->query('SELECT DISTINCT t.id, p.id, p.message FROM '.$db->prefix.'topics AS t INNER JOIN '.$db->prefix.'posts AS p ON t.id=p.topic_id WHERE t.id>='.$start_at.' ORDER BY t.id LIMIT '.$per_page) or error('Unable to fetch topic/post info', __FILE__, __LINE__, $db->error());
+	$result = $db->query('SELECT id FROM '.$db->prefix.'topics WHERE id>='.$start_at.' ORDER BY id LIMIT '.$per_page) or error('Unable to fetch topic list', __FILE__, __LINE__, $db->error());
+	$topics = array();
+	while ($cur_topic = $db->fetch_row($result))
+		$topics[] = $cur_topic[0];
+
+	$result = $db->query('SELECT topic_id, id, message FROM '.$db->prefix.'posts WHERE topic_id IN ('.implode(',', $topics).') ORDER BY topic_id') or error('Unable to fetch topic/post info', __FILE__, __LINE__, $db->error());
 
 	$cur_topic = 0;
 	while ($cur_post = $db->fetch_row($result))
