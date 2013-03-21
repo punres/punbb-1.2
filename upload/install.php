@@ -1307,6 +1307,9 @@ else
 	// Determine the server timezone offset in hours
 	$server_timezone = date('Z') / 3600;
 
+	// Enable/disable avatars depending on file_uploads setting in PHP configuration
+	$avatars = in_array(strtolower(@ini_get('file_uploads')), array('on', 'true', '1')) ? 1 : 0;
+
 	// Insert config data
 	$config = array(
 		'o_cur_version'				=> "'$punbb_version'",
@@ -1343,7 +1346,7 @@ else
 		'o_report_method'			=> "'0'",
 		'o_regs_report'				=> "'0'",
 		'o_mailing_list'			=> "'$email'",
-		'o_avatars'					=> "'1'",
+		'o_avatars'					=> "'$avatars'",
 		'o_avatars_dir'				=> "'img/avatars'",
 		'o_avatars_width'			=> "'60'",
 		'o_avatars_height'			=> "'60'",
