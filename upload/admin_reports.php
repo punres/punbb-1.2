@@ -48,6 +48,14 @@ if (isset($_POST['zap_id']))
 	if ($zapped == '')
 		$db->query('UPDATE '.$db->prefix.'reports SET zapped='.time().', zapped_by='.$pun_user['id'].' WHERE id='.$zap_id) or error('Unable to zap report', __FILE__, __LINE__, $db->error());
 
+	// Delete old zapped reports (which cannot be viewed anyway)
+	$result = $db->query('SELECT zapped FROM '.$db->prefix.'reports WHERE zapped IS NOT NULL ORDER BY zapped DESC LIMIT 10,1') or error('Unable to fetch zapped reports to delete', __FILE__, __LINE__, $db->error());
+	if ($db->num_rows($result) > 0)
+	{
+		$zapped_threshold = $db->result($result);
+		$db->query('DELETE FROM '.$db->prefix.'reports WHERE zapped <= '.$zapped_threshold) or error('Unable to delete old zapped reports', __FILE__, __LINE__, $db->error());
+	}
+
 	redirect('admin_reports.php', 'Report zapped. Redirecting &hellip;');
 }
 
