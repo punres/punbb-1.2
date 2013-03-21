@@ -286,12 +286,24 @@ else
 		else
 			echo '<strong style="color: A00000">An error occured.</strong><br /><br />';
 
-		echo '<strong>PunBB reported:</strong> '.htmlspecialchars($message).'<br /><br />';
+		echo '<strong>PunBB reported:</strong> '.pun_htmlspecialchars($message).'<br /><br />';
 
 		if ($db_error !== false)
-			echo '<strong>Database reported:</strong> '.htmlspecialchars($db_error['error_msg']).(($db_error['error_no']) ? ' (Errno: '.$db_error['error_no'].')' : '');
+			echo '<strong>Database reported:</strong> '.pun_htmlspecialchars($db_error['error_msg']).(($db_error['error_no']) ? ' (Errno: '.$db_error['error_no'].')' : '');
 
 		exit;
+	}
+
+
+	//
+	// Equivalent to htmlspecialchars(), but allows &#[0-9]+ (for unicode)
+	//
+	function pun_htmlspecialchars($str)
+	{
+		$str = preg_replace('/&(?!#[0-9]+;)/s', '&amp;', $str);
+		$str = str_replace(array('<', '>', '"'), array('&lt;', '&gt;', '&quot;'), $str);
+	
+		return $str;
 	}
 
 
@@ -352,7 +364,7 @@ else
 			break;
 
 		default:
-			error('\''.$db_type.'\' is not a valid database type.');
+			error('\''.pun_htmlspecialchars($db_type).'\' is not a valid database type.');
 	}
 
 	// Create the database object (and connect/select db)
@@ -1448,7 +1460,7 @@ else
 				<fieldset>
 					<legend>Copy contents to config.php</legend>
 					<div class="infldset">
-						<textarea cols="80" rows="20"><?php echo htmlspecialchars($config) ?></textarea>
+						<textarea cols="80" rows="20"><?php echo pun_htmlspecialchars($config) ?></textarea>
 					</div>
 				</fieldset>
 			</div>
