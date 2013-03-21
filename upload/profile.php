@@ -593,7 +593,7 @@ else if (isset($_POST['delete_user']) || isset($_POST['delete_user_comply']))
 					if ($db->result($result2) == $cur_post['id'])
 						delete_topic($cur_post['topic_id']);
 					else
-						delete_post($cur_post['id'], $cur_post['topic_id']);
+						delete_post($cur_post['id'], $cur_post['topic_id'], $id);
 
 					update_forum($cur_post['forum_id']);
 				}
