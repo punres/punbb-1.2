@@ -114,7 +114,7 @@ function process_form(the_form)
 // -->
 </script>
 </head>
-<body onload="document.getElementById('install').req_db_type.focus()">
+<body onload="document.getElementById('install').req_db_type.focus();document.getElementById('install').start.disabled=false;" onunload="">
 
 <div id="puninstall" style="margin: auto 10% auto 10%">
 <div class="pun">
