@@ -66,13 +66,18 @@ function generate_admin_menu($page = '')
 	$d = dir(PUN_ROOT.'plugins');
 	while (($entry = $d->read()) !== false)
 	{
+		if ($entry{0} == '.')
+			continue;
+
 		$prefix = substr($entry, 0, strpos($entry, '_'));
 		$suffix = substr($entry, strlen($entry) - 4);
 
 		if ($suffix == '.php' && ((!$is_admin && $prefix == 'AMP') || ($is_admin && ($prefix == 'AP' || $prefix == 'AMP'))))
-			$plugins[] = array(substr(substr($entry, strpos($entry, '_') + 1), 0, -4), $entry);
+			$plugins[$entry] = substr($entry, strpos($entry, '_') + 1, -4);
 	}
 	$d->close();
+
+	natcasesort($plugins);
 
 	// Did we find any plugins?
 	if (!empty($plugins))
@@ -85,8 +90,8 @@ function generate_admin_menu($page = '')
 				<ul>
 <?php
 
-		while (list(, $cur_plugin) = @each($plugins))
-			echo "\t\t\t\t\t".'<li'.(($page == $cur_plugin[1]) ? ' class="isactive"' : '').'><a href="admin_loader.php?plugin='.$cur_plugin[1].'">'.str_replace('_', ' ', $cur_plugin[0]).'</a></li>'."\n";
+		foreach ($plugins as $plugin_name => $plugin)
+			echo "\t\t\t\t\t".'<li'.(($page == $plugin_name) ? ' class="isactive"' : '').'><a href="admin_loader.php?plugin='.$plugin_name.'">'.str_replace('_', ' ', $plugin).'</a></li>'."\n";
 
 ?>
 				</ul>
