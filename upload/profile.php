@@ -1177,7 +1177,7 @@ else
 		// Only display the language selection box if there's more than one language available
 		if (count($languages) > 1)
 		{
-			natsort($languages);
+			natcasesort($languages);
 
 ?>
 							<label><?php echo $lang_prof_reg['Language'] ?>: <?php echo $lang_prof_reg['Language info'] ?>
@@ -1389,7 +1389,7 @@ else
 			echo "\t\t\t".'<div><input type="hidden" name="form[style]" value="'.$styles[0].'" /></div>'."\n";
 		else if (count($styles) > 1)
 		{
-			natsort($styles);
+			natcasesort($styles);
 
 ?>
 				<div class="inform">

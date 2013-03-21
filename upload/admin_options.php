@@ -240,7 +240,7 @@ generate_admin_menu('options');
 		}
 		$d->close();
 
-		@natsort($languages);
+		@natcasesort($languages);
 
 		while (list(, $temp) = @each($languages))
 		{
@@ -270,7 +270,7 @@ generate_admin_menu('options');
 		}
 		$d->close();
 
-		@natsort($styles);
+		@natcasesort($styles);
 
 		while (list(, $temp) = @each($styles))
 		{
