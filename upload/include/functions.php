@@ -696,14 +696,57 @@ function confirm_referrer($script)
 
 //
 // Generate a random password of length $len
+// This function is partially based on the function genRandomPassword() used in Joomla CMS (http://http://www.joomla.org).
 //
 function random_pass($len)
 {
-	$chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	// Generate cryptographic-strength random bytes
+	$num_bytes = $len + 1;
+	$random_bytes = '';
+	if (function_exists('openssl_random_pseudo_bytes') && (version_compare(PHP_VERSION, '5.3.4', '>=') || substr(PHP_OS, 0, 3) !== 'WIN'))
+	{
+		$SSLstr = openssl_random_pseudo_bytes($num_bytes, $strong);
 
+		if ($strong)
+			$random_bytes = $SSLstr;
+	}
+
+	// For unix/linux platforms
+	if (strlen($random_bytes) < $num_bytes && @is_readable('/dev/urandom') && ($fh = @fopen('/dev/urandom', 'rb')))
+	{
+		$random_bytes = fread($fh, $num_bytes);
+		fclose($fh);
+	}
+
+	// Falling back to using a pseudo-random state to generate randomness
+	if (strlen($random_bytes) < $num_bytes)
+	{
+		$random_bytes = '';
+		$random_state = microtime().uniqid(rand(), true);
+		// Further initialize with the somewhat random PHP process ID
+		if (function_exists('getmypid'))
+			$random_state .= getmypid();
+
+		for ($i = 0; $i < $num_bytes; $i += 16)
+		{
+			$random_state = md5(microtime().$random_state);
+			$random_bytes .= pack('H*', md5($random_state));
+		}
+	}
+
+	$salt = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	$base = strlen($salt);
 	$password = '';
-	for ($i = 0; $i < $len; ++$i)
-		$password .= substr($chars, (mt_rand() % strlen($chars)), 1);
+
+	// Convert the cryptographic-strength random bytes to a string with the numeric
+	// base of the salt. Shift the base conversion on each character so the character
+	// distribution is even, and randomize the start shift so it's not predictable.
+	$shift = ord($random_bytes[0]);
+	for ($i = 1; $i <= $len; ++$i)
+	{
+		$password .= $salt[($shift + ord($random_bytes[$i])) % $base];
+		$shift += ord($random_bytes[$i]);
+	}
 
 	return $password;
 }
