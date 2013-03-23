@@ -315,6 +315,34 @@ else
 	}
 
 
+	//
+	// Check whether a file/folder is writable
+	// This function also works on Windows Server where ACLs seem to be ignored
+	//
+	function forum_is_writable($path)
+	{
+		if (is_dir($path))
+		{
+			$path = rtrim($path, '/').'/';
+			return forum_is_writable($path.uniqid(mt_rand()).'.tmp');
+		}
+	
+		// Check temporary file for read/write capabilities
+		$rm = file_exists($path);
+		$f = @fopen($path, 'a');
+	
+		if ($f === false)
+			return false;
+	
+		fclose($f);
+	
+		if (!$rm)
+			@unlink($path);
+	
+		return true;
+	}
+
+
 	$db_type = $_POST['req_db_type'];
 	$db_host = trim($_POST['req_db_host']);
 	$db_name = trim($_POST['req_db_name']);
@@ -1425,11 +1453,11 @@ else
 
 	$alerts = '';
 	// Check if the cache directory is writable
-	if (!@is_writable('./cache/'))
+	if (!forum_is_writable(PUN_ROOT.'cache/'))
 		$alerts .= '<p style="font-size: 1.1em"><span style="color: #C03000"><strong>The cache directory is currently not writable!</strong></span> In order for PunBB to function properly, the directory named <em>cache</em> must be writable by PHP. Use chmod to set the appropriate directory permissions. If in doubt, chmod to 0777.</p>';
 
 	// Check if default avatar directory is writable
-	if (!@is_writable('./img/avatars/'))
+	if (!forum_is_writable(PUN_ROOT.'img/avatars/'))
 		$alerts .= '<p style="font-size: 1.1em"><span style="color: #C03000"><strong>The avatar directory is currently not writable!</strong></span> If you want users to be able to upload their own avatar images you must see to it that the directory named <em>img/avatars</em> is writable by PHP. You can later choose to save avatar images in a different directory (see Admin/Options). Use chmod to set the appropriate directory permissions. If in doubt, chmod to 0777.</p>';
 
 
@@ -1445,7 +1473,7 @@ else
 
 	// Attempt to write config.php
 	$written = false;
-	if (is_writable(PUN_ROOT))
+	if (forum_is_writable(PUN_ROOT))
 	{
 		$fh = @fopen(PUN_ROOT.'config.php', 'wb');
 		if ($fh)

@@ -1166,6 +1166,34 @@ function check_server_timezone()
 }
 
 
+//
+// Check whether a file/folder is writable
+// This function also works on Windows Server where ACLs seem to be ignored
+//
+function forum_is_writable($path)
+{
+	if (is_dir($path))
+	{
+		$path = rtrim($path, '/').'/';
+		return forum_is_writable($path.uniqid(mt_rand()).'.tmp');
+	}
+
+	// Check temporary file for read/write capabilities
+	$rm = file_exists($path);
+	$f = @fopen($path, 'a');
+
+	if ($f === false)
+		return false;
+
+	fclose($f);
+
+	if (!$rm)
+		@unlink($path);
+
+	return true;
+}
+
+
 // DEBUG FUNCTIONS BELOW
 
 //
