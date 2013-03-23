@@ -38,11 +38,28 @@ header('Content-type: text/html; charset='.$lang_common['lang_encoding']);
 
 // Load the template
 if (defined('PUN_ADMIN_CONSOLE'))
-	$tpl_main = file_get_contents(PUN_ROOT.'include/template/admin.tpl');
+{
+	if (file_exists(PUN_ROOT.'include/template/'.$pun_user['style'].'/admin.tpl'))
+		$tpl_main = file_get_contents(PUN_ROOT.'include/template/'.$pun_user['style'].'/admin.tpl');
+	else
+		$tpl_main = file_get_contents(PUN_ROOT.'include/template/admin.tpl');
+}
 else if (defined('PUN_HELP'))
-	$tpl_main = file_get_contents(PUN_ROOT.'include/template/help.tpl');
+{
+	if (file_exists(PUN_ROOT.'include/template/'.$pun_user['style'].'/help.tpl'))
+		$tpl_main = file_get_contents(PUN_ROOT.'include/template/'.$pun_user['style'].'/help.tpl');
+	else
+		$tpl_main = file_get_contents(PUN_ROOT.'include/template/help.tpl');
+}
 else
-	$tpl_main = file_get_contents(PUN_ROOT.'include/template/main.tpl');
+{
+	if (file_exists(PUN_ROOT.'include/template/'.$pun_user['style'].'/main.tpl'))
+		$tpl_main = file_get_contents(PUN_ROOT.'include/template/'.$pun_user['style'].'/main.tpl');
+	else
+		$tpl_main = file_get_contents(PUN_ROOT.'include/template/main.tpl');
+}
+
+define('PUNRES_STYLE_COMPATIBLE', 1);
 
 
 // START SUBST - <pun_include "*">
