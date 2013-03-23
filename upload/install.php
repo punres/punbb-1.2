@@ -49,6 +49,14 @@ if (get_magic_quotes_runtime())
 
 if (!isset($_POST['form_sent']))
 {
+	// Make an educated guess regarding base_url
+	$base_url  = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://';	// protocol
+	$base_url .= preg_replace('%:(80|443)$%', '', $_SERVER['HTTP_HOST']);							// host[:port]
+	$base_url .= str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));							// path
+
+	if (substr($base_url, -1) == '/')
+		$base_url = substr($base_url, 0, -1);
+
 	// Determine available database extensions
 	$dual_mysql = false;
 	$db_extensions = array();
@@ -232,7 +240,7 @@ function process_form(the_form)
 					<legend>Enter the Base URL of your PunBB installation</legend>
 					<div class="infldset">
 						<p>The URL (without trailing slash) of your PunBB forum (example: http://forum.myhost.com or http://myhost.com/~myuser). This <strong>must</strong> be correct, otherwise administrators and moderators will not be able to submit any forms. Please note that the preset value below is just an educated guess by PunBB.</p>
-						<label><strong>Base URL</strong><br /><input type="text" name="req_base_url" value="http://<?php echo $_SERVER['SERVER_NAME'].str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])) ?>" size="60" maxlength="100" /><br /></label>
+						<label><strong>Base URL</strong><br /><input type="text" name="req_base_url" value="<?php echo $base_url ?>" size="60" maxlength="100" /><br /></label>
 					</div>
 				</fieldset>
 			</div>
@@ -317,13 +325,12 @@ else
 	$email = strtolower(trim($_POST['req_email']));
 	$password1 = unescape(trim($_POST['req_password1']));
 	$password2 = unescape(trim($_POST['req_password2']));
+	$base_url = trim($_POST['req_base_url']);
 
 
 	// Make sure base_url doesn't end with a slash
-	if (substr($_POST['req_base_url'], -1) == '/')
-		$base_url = substr($_POST['req_base_url'], 0, -1);
-	else
-		$base_url = $_POST['req_base_url'];
+	if (substr($base_url, -1) == '/')
+		$base_url = substr($base_url, 0, -1);
 
 
 	// Validate username and passwords
