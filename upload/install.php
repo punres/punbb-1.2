@@ -1440,8 +1440,22 @@ else
 	$rand_str = substr($rand_str, 0, 5);
 	$cookie_name .= strtolower($rand_str);
 
-	/// Display config.php and give further instructions
+	// Generate config.php
 	$config = '<?php'."\n\n".'$db_type = \''.$db_type."';\n".'$db_host = \''.$db_host."';\n".'$db_name = \''.$db_name."';\n".'$db_username = \''.$db_username."';\n".'$db_password = \''.$db_password."';\n".'$db_prefix = \''.$db_prefix."';\n".'$p_connect = false;'."\n\n".'$cookie_name = '."'".$cookie_name."';\n".'$cookie_domain = '."'';\n".'$cookie_path = '."'/';\n".'$cookie_secure = 0;'."\n".'$cookie_seed = \''.substr(pun_hash(uniqid(rand(), true)), 0, 16)."';\n\ndefine('PUN', 1);";
+
+	// Attempt to write config.php
+	$written = false;
+	if (is_writable(PUN_ROOT))
+	{
+		$fh = @fopen(PUN_ROOT.'config.php', 'wb');
+		if ($fh)
+		{
+			fwrite($fh, $config);
+			fclose($fh);
+
+			$written = true;
+		}
+	}
 
 
 ?>
@@ -1461,6 +1475,12 @@ else
 <div class="blockform">
 	<h2>Final instructions</h2>
 	<div class="box">
+<?php
+
+if (!$written)
+{
+
+?>
 		<div class="fakeform">
 			<div class="inform">
 				<div class="forminfo">
@@ -1481,6 +1501,25 @@ else
 				</div>
 			</div>
 		</div>
+<?php
+
+}
+else
+{
+
+?>
+		<div class="fakeform">
+			<div class="inform">
+				<div class="forminfo">
+					<p>PunBB has been fully installed! You may now <a href="index.php">go to the forum index</a>.</p>
+				</div>
+			</div>
+		</div>
+<?php
+
+}
+
+?>
 	</div>
 </div>
 
