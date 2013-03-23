@@ -526,8 +526,7 @@ if (isset($_GET['action']) || isset($_GET['search_id']))
 		$result = $db->query('SELECT id, forum_name FROM '.$db->prefix.'forums') or error('Unable to fetch forum list', __FILE__, __LINE__, $db->error());
 
 		$forum_list = array();
-		while ($forum_list[] = $db->fetch_row($result))
-			;
+		while ($forum_list[] = $db->fetch_row($result));
 
 		// Finally, lets loop through the results and output them
 		for ($i = 0; $i < count($search_set); ++$i)

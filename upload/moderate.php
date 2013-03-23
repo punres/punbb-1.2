@@ -3,8 +3,6 @@
 
   Copyright (C) 2002-2008  PunBB
 
-  Partially based on code copyright (C) 2008  FluxBB.org
-
   This file is part of PunBB.
 
   PunBB is free software; you can redistribute it and/or modify it

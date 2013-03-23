@@ -43,7 +43,7 @@ if ($action == 'check_upgrade')
 	if (!ini_get('allow_url_fopen'))
 		message('Unable to check for upgrade since \'allow_url_fopen\' is disabled on this system.');
 
-	$latest_version = trim(@file_get_contents('http://punbb.informer.com/latest_version'));
+	$latest_version = trim(@file_get_contents('http://www.punbb.org/latest_version'));
 	if (empty($latest_version))
 		message('Check for upgrade failed for unknown reasons.');
 

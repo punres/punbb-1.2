@@ -275,14 +275,15 @@ generate_admin_menu('options');
 		while (list(, $temp) = @each($styles))
 		{
 			if ($pun_config['o_default_style'] == $temp)
-				echo "\t\t\t\t\t\t\t\t\t".'<option value="'.$temp.'" selected="selected">'.str_replace('_', ' ', $temp).'</option>'."\n";
+				echo "\t\t\t\t\t\t\t\t\t\t\t".'<option value="'.$temp.'" selected="selected">'.str_replace('_', ' ', $temp).'</option>'."\n";
 			else
-				echo "\t\t\t\t\t\t\t\t\t".'<option value="'.$temp.'">'.str_replace('_', ' ', $temp).'</option>'."\n";
+				echo "\t\t\t\t\t\t\t\t\t\t\t".'<option value="'.$temp.'">'.str_replace('_', ' ', $temp).'</option>'."\n";
 		}
 
 ?>
 										</select>
-										<span>This is the default style used for guests and users who haven't changed from the default in their profile.</span></td>
+										<span>This is the default style used for guests and users who haven't changed from the default in their profile.</span>
+									</td>
 								</tr>
 							</table>
 						</div>
@@ -355,7 +356,7 @@ generate_admin_menu('options');
 									<th scope="row">User post count</th>
 									<td>
 										<input type="radio" name="form[show_post_count]" value="1"<?php if ($pun_config['o_show_post_count'] == '1') echo ' checked="checked"' ?> />&nbsp;<strong>Yes</strong>&nbsp;&nbsp;&nbsp;<input type="radio" name="form[show_post_count]" value="0"<?php if ($pun_config['o_show_post_count'] == '0') echo ' checked="checked"' ?> />&nbsp;<strong>No</strong>
-										<span>Show the number of posts a user has made (affects topic view, profile and userlist).</span>
+										<span>Show the number of posts a user has made (affects topic view, profile and user list).</span>
 									</td>
 								</tr>
 								<tr>

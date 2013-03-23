@@ -312,7 +312,7 @@ else if ($action == 'upload_avatar' || $action == 'upload_avatar2')
 	{
 		if (!isset($_FILES['req_file']))
 			message($lang_profile['No file']);
-			
+
 		$uploaded_file = $_FILES['req_file'];
 
 		// Make sure the upload went smooth
@@ -684,8 +684,8 @@ else if (isset($_POST['form_sent']))
 
 		while (list($key, $value) = @each($_POST['form']))
 		{
-		    if (in_array($key, $allowed_elements))
-		        $form[$key] = $value;
+			if (in_array($key, $allowed_elements))
+				$form[$key] = $value;
 		}
 
 		return $form;
@@ -713,7 +713,7 @@ else if (isset($_POST['form_sent']))
 					if (strlen($form['username']) < 2)
 						message($lang_prof_reg['Username too short']);
 					else if (pun_strlen($form['username']) > 25)	// This usually doesn't happen since the form element only accepts 25 characters
-					    message($lang_common['Bad request']);
+						message($lang_common['Bad request']);
 					else if (!strcasecmp($form['username'], 'Guest') || !strcasecmp($form['username'], $lang_common['Guest']))
 						message($lang_prof_reg['Username guest']);
 					else if (preg_match('/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/', $form['username']))
@@ -750,7 +750,7 @@ else if (isset($_POST['form_sent']))
 			{
 				$form['language'] = preg_replace('#[\.\\\/]#', '', $form['language']);
 				if (!file_exists(PUN_ROOT.'lang/'.$form['language'].'/common.php'))
-						message($lang_common['Bad request']);
+					message($lang_common['Bad request']);
 			}
 
 			break;

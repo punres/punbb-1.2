@@ -253,3 +253,4 @@ else
 $forum_id = $id;
 $footer_style = 'viewforum';
 require PUN_ROOT.'footer.php';
+
