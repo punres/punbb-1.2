@@ -547,7 +547,7 @@ if (isset($_GET['action']) || isset($_GET['search_id']))
 				$icon = '<div class="icon"><div class="nosize">'.$lang_common['Normal icon'].'</div></div>'."\n";
 				$subject = '<a href="viewtopic.php?id='.$search_set[$i]['tid'].'">'.pun_htmlspecialchars($search_set[$i]['subject']).'</a>';
 
-				if (!$pun_user['is_guest'] && $search_set[$i]['last_post'] > $pun_user['last_visit'])
+				if (!$pun_user['is_guest'] && topic_is_new($search_set[$i]['tid'], $search_set[$i]['forum_id'], $search_set[$i]['last_post']))
 					$icon = '<div class="icon inew"><div class="nosize">'.$lang_common['New icon'].'</div></div>'."\n";
 
 
