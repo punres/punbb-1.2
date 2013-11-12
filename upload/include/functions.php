@@ -919,8 +919,13 @@ function redirect($destination_url, $message)
 
 	// If the delay is 0 seconds, we might as well skip the redirect all together
 	if ($pun_config['o_redirect_delay'] == '0')
-		header('Location: '.str_replace('&amp;', '&', $destination_url));
+	{
+		$db->end_transaction();
+		$db->close();
 
+		header('Location: '.str_replace('&amp;', '&', $destination_url));
+		exit;
+	}
 
 	// Load the redirect template
 	if (file_exists(PUN_ROOT.'include/template/'.$pun_user['style'].'/redirect.tpl'))
