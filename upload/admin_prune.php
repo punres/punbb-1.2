@@ -35,7 +35,8 @@ if ($pun_user['g_id'] > PUN_ADMIN)
 	message($lang_common['No permission']);
 
 
-if (isset($_GET['action']) || isset($_POST['prune']) || isset($_POST['prune_comply']))
+// Prune posts
+if (isset($_POST['prune']) || isset($_POST['prune_comply']))
 {
 	if (isset($_POST['prune_comply']))
 	{
@@ -84,14 +85,14 @@ if (isset($_GET['action']) || isset($_POST['prune']) || isset($_POST['prune_comp
 	}
 
 
-	$prune_days = $_POST['req_prune_days'];
-	if (!@preg_match('#^\d+$#', $prune_days))
-		message('Days to prune must be a positive integer.');
+	$prune_days = $_POST['prune_days'];
+	if (!@preg_match('/^[0-9]+$/', $prune_days))
+		message('Days to prune must be an integer equal to or greater than zero.');
 
 	$prune_date = time() - ($prune_days*86400);
 	$prune_from = $_POST['prune_from'];
 
-	// Concatenate together the query for counting number or topics to prune
+	// Concatenate together the query for counting number of topics to prune
 	$sql = 'SELECT COUNT(id) FROM '.$db->prefix.'topics WHERE last_post<'.$prune_date.' AND moved_to IS NULL';
 
 	if (!$prune_sticky)
@@ -150,11 +151,91 @@ if (isset($_GET['action']) || isset($_POST['prune']) || isset($_POST['prune_comp
 }
 
 
+// Prune unverified users
+else if (isset($_POST['prune_users']) || isset($_POST['prune_users_comply']))
+{
+	if (isset($_POST['prune_users_comply']))
+	{
+		confirm_referrer('admin_prune.php');
+
+		if (isset($_POST['prune_users_days']))
+		{
+			$prune_days = intval($_POST['prune_users_days']);
+			$prune_date = time() - ($prune_days*86400);
+		}
+		else
+			$prune_date = -1;
+
+		@set_time_limit(0);
+
+		// Delete the unverified users
+		$db->query('DELETE FROM '.$db->prefix.'users WHERE group_id='.PUN_UNVERIFIED.' AND registered<'.$prune_date) or error('Unable to delete unverified users', __FILE__, __LINE__, $db->error());
+
+		redirect('admin_prune.php', 'Unverified users pruned. Redirecting &hellip;');
+	}
+
+
+	$prune_days = $_POST['prune_users_days'];
+	if (!@preg_match('/^[0-9]+$/', $prune_days))
+		message('Days to prune must be an integer equal to or greater than zero.');
+
+	$prune_date = time() - ($prune_days*86400);
+
+	// Concatenate together the query for counting number of unverified users to prune
+	$sql = 'SELECT COUNT(id) FROM '.$db->prefix.'users WHERE group_id='.PUN_UNVERIFIED.' AND registered<'.$prune_date;
+
+	$result = $db->query($sql) or error('Unable to fetch user prune count', __FILE__, __LINE__, $db->error());
+	$num_users = $db->result($result);
+
+	if (!$num_users)
+	{
+		if ($prune_days == '0')
+			message('There are no unverified users in the forum.');
+		else
+			message('There are no unverified users that who have not verified their accounts within the last '.$prune_days.' days. Please decrease the value of "Days unverified" and try again.');
+	}
+
+	$page_title = pun_htmlspecialchars($pun_config['o_board_title']).' / Admin / Prune';
+	require PUN_ROOT.'header.php';
+
+	generate_admin_menu('prune');
+
+?>
+	<div class="blockform">
+		<h2><span>Prune</span></h2>
+		<div class="box">
+			<form method="post" action="admin_prune.php?action=foo">
+				<div class="inform">
+					<input type="hidden" name="prune_users_days" value="<?php echo $prune_days ?>" />
+					<fieldset>
+						<legend>Confirm prune unverified users</legend>
+						<div class="infldset">
+<?php
+if ($prune_days == '0')
+	echo "\t\t\t\t\t\t\t".'<p>Are you sure that you want to prune all unverified users? ('.$num_users.' users)</p>'."\n";
+else
+	echo "\t\t\t\t\t\t\t".'<p>Are you sure that you want to prune all unverified users who have not verified their accounts within the last '.$prune_days.' days? ('.$num_users.' users)</p>'."\n";
+?>
+							<p>WARNING! Pruning unverified users deletes them permanently.</p>
+						</div>
+					</fieldset>
+				</div>
+				<p><input type="submit" name="prune_users_comply" value="Prune" /><a href="javascript:history.go(-1)">Go back</a></p>
+			</form>
+		</div>
+	</div>
+	<div class="clearer"></div>
+</div>
+<?php
+
+	require PUN_ROOT.'footer.php';
+}
+
+
 else
 {
 	$page_title = pun_htmlspecialchars($pun_config['o_board_title']).' / Admin / Prune';
-	$required_fields = array('req_prune_days' => 'Days old');
-	$focus_element = array('prune', 'req_prune_days');
+	$focus_element = array('prune', 'prune_days');
 	require PUN_ROOT.'header.php';
 
 	generate_admin_menu('prune');
@@ -173,7 +254,7 @@ else
 								<tr>
 									<th scope="row">Days old</th>
 									<td>
-										<input type="text" name="req_prune_days" size="3" maxlength="3" tabindex="1" />
+										<input type="text" name="prune_days" size="3" maxlength="3" tabindex="1" />
 										<span>The number of days "old" a topic must be to be pruned. E.g. if you were to enter 30, every topic that didn't contain a post dated less than 30 days old would be deleted.</span>
 									</td>
 								</tr>
@@ -217,6 +298,25 @@ else
 							</table>
 							<p class="topspace">Use this feature with caution. Pruned posts can <strong>never</strong> be recovered. For best performance you should put the forum in maintenance mode during pruning.</p>
 							<div class="fsetsubmit"><input type="submit" name="prune" value="Prune" tabindex="5" /></div>
+						</div>
+					</fieldset>
+				</div>
+				<div class="inform">
+				<input type="hidden" name="form_sent" value="1" />
+					<fieldset>
+						<legend>Prune unverified users</legend>
+						<div class="infldset">
+							<table class="aligntop" cellspacing="0">
+								<tr>
+									<th scope="row">Days unverified</th>
+									<td>
+										<input type="text" name="prune_users_days" size="3" maxlength="3" tabindex="1" />
+										<span>Prune all users who have not verified their accounts within this number of days. E.g. if you were to enter 30, all unverified user who registered more than 30 days ago would be deleted. Enter 0 to delete all unverified users.</span>
+									</td>
+								</tr>
+							</table>
+							<p class="topspace">Use this feature with caution. Pruned users can <strong>never</strong> be recovered.</p>
+							<div class="fsetsubmit"><input type="submit" name="prune_users" value="Prune" tabindex="5" /></div>
 						</div>
 					</fieldset>
 				</div>
