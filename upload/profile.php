@@ -890,6 +890,9 @@ else if (isset($_POST['form_sent']))
 	// If we changed the username we have to update some stuff
 	if ($username_updated)
 	{
+		$db->query('UPDATE '.$db->prefix.'bans SET username=\''.$db->escape($form['username']).'\' WHERE username=\''.$db->escape($old_username).'\'') or error('Unable to update bans', __FILE__, __LINE__, $db->error());
+		// If any bans were updated, we will need to know because the bans cache will need to be regenerated
+		$bans_updated = ($db->affected_rows() > 0) ? true : false;
 		$db->query('UPDATE '.$db->prefix.'posts SET poster=\''.$db->escape($form['username']).'\' WHERE poster_id='.$id) or error('Unable to update posts', __FILE__, __LINE__, $db->error());
 		$db->query('UPDATE '.$db->prefix.'posts SET edited_by=\''.$db->escape($form['username']).'\' WHERE edited_by=\''.$db->escape($old_username).'\'') or error('Unable to update posts', __FILE__, __LINE__, $db->error());
 		$db->query('UPDATE '.$db->prefix.'topics SET poster=\''.$db->escape($form['username']).'\' WHERE poster=\''.$db->escape($old_username).'\'') or error('Unable to update topics', __FILE__, __LINE__, $db->error());
@@ -918,6 +921,13 @@ else if (isset($_POST['form_sent']))
 					$db->query('UPDATE '.$db->prefix.'forums SET moderators=\''.$db->escape(serialize($cur_moderators)).'\' WHERE id='.$cur_forum['id']) or error('Unable to update forum', __FILE__, __LINE__, $db->error());
 				}
 			}
+		}
+
+		// If the bans table was updated, we need to regenerate the bans cache
+		if ($bans_updated)
+		{
+			require_once PUN_ROOT.'include/cache.php';
+			generate_bans_cache();
 		}
 	}
 
