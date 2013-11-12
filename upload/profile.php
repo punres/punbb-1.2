@@ -726,6 +726,13 @@ else if (isset($_POST['form_sent']))
 					if ($db->num_rows($result))
 						message($lang_profile['Dupe username']);
 
+					// Check username for any banned usernames
+					foreach ($pun_bans as $cur_ban)
+					{
+						if ($cur_ban['username'] != '' && strtolower($form['username']) == strtolower($cur_ban['username']))
+							message($lang_prof_reg['Banned username']);
+					}
+
 					if ($form['username'] != $old_username)
 						$username_updated = true;
 				}

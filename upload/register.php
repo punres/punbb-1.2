@@ -142,6 +142,16 @@ if (isset($_POST['form_sent']))
 		$errors[] = $lang_register['Username dupe 1'].' '.pun_htmlspecialchars($busy).'. '.$lang_register['Username dupe 2'];
 	}
 
+	// Check username for any banned usernames
+	foreach ($pun_bans as $cur_ban)
+	{
+		if ($cur_ban['username'] != '' && strtolower($username) == strtolower($cur_ban['username']))
+		{
+			$errors[] = $lang_prof_reg['Banned username'];
+			break;
+		}
+	}
+
 
 	// Validate e-mail
 	require PUN_ROOT.'include/email.php';
