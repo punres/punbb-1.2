@@ -393,7 +393,7 @@ else
 									<td><input type="text" name="form[icq]" size="12" maxlength="12" tabindex="7" /></td>
 								</tr>
 								<tr>
-									<th scope="row">MSN Messenger</th>
+									<th scope="row">Microsoft Account</th>
 									<td><input type="text" name="form[msn]" size="30" maxlength="50" tabindex="8" /></td>
 								</tr>
 								<tr>
