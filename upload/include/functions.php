@@ -431,8 +431,9 @@ function delete_post($post_id, $topic_id, $poster_id)
 	// Delete the post
 	$db->query('DELETE FROM '.$db->prefix.'posts WHERE id='.$post_id) or error('Unable to delete post', __FILE__, __LINE__, $db->error());
 
-	// Decrement user post count
-	$db->query('UPDATE '.$db->prefix.'users SET num_posts=num_posts-1 WHERE id='.$poster_id) or error('Unable to update user post count', __FILE__, __LINE__, $db->error());
+	// Decrement user post count if the user is a registered user
+	if ($poster_id > 1)
+		$db->query('UPDATE '.$db->prefix.'users SET num_posts=num_posts-1 WHERE id='.$poster_id) or error('Unable to update user post count', __FILE__, __LINE__, $db->error());
 
 	strip_search_index($post_id);
 
@@ -1177,7 +1178,7 @@ function decrease_post_counts($post_ids)
 
 		// Count the post counts for each user to be subtracted
 		$user_posts = array();
-		$result = $db->query('SELECT poster_id FROM '.$db->prefix.'posts WHERE id IN('.$post_ids.')') or error('Unable to fetch posts', __FILE__, __LINE__, $db->error());
+		$result = $db->query('SELECT poster_id FROM '.$db->prefix.'posts WHERE id IN('.$post_ids.') AND poster_id>1') or error('Unable to fetch posts', __FILE__, __LINE__, $db->error());
 		while ($row = $db->fetch_assoc($result))
 		{
 			if (!isset($user_posts[$row['poster_id']]))
