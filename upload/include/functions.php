@@ -433,7 +433,7 @@ function delete_post($post_id, $topic_id, $poster_id)
 
 	// Decrement user post count if the user is a registered user
 	if ($poster_id > 1)
-		$db->query('UPDATE '.$db->prefix.'users SET num_posts=num_posts-1 WHERE id='.$poster_id) or error('Unable to update user post count', __FILE__, __LINE__, $db->error());
+		$db->query('UPDATE '.$db->prefix.'users SET num_posts=num_posts-1 WHERE id='.$poster_id.' AND num_posts>0') or error('Unable to update user post count', __FILE__, __LINE__, $db->error());
 
 	strip_search_index($post_id);
 
@@ -1189,7 +1189,7 @@ function decrease_post_counts($post_ids)
 
 		// Decrease the post counts
 		foreach($user_posts as $user_id => $subtract)
-			$db->query('UPDATE '.$db->prefix.'users SET num_posts=num_posts-'.$subtract.' WHERE id='.$user_id) or error('Unable to update user post count', __FILE__, __LINE__, $db->error());
+			$db->query('UPDATE '.$db->prefix.'users SET num_posts = CASE WHEN num_posts>='.$subtract.' THEN num_posts-'.$subtract.' ELSE 0 END WHERE id='.$user_id) or error('Unable to update user post count', __FILE__, __LINE__, $db->error());
 }
 
 
